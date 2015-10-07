@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -x
 set -eo pipefail
 [[ "${DEBUG:-}" ]] && set -x
 
@@ -34,12 +35,32 @@ find_cmd() {
 check_all_executables() {
   echo "Linting all executables and .sh files, ignoring files inside git modules..."
   eval "$(find_cmd)" | while read script; do
-    head=$(head -n1 "$script")
-    [[ "$head" =~ .*ruby.* ]] && continue
-    [[ "$head" =~ .*zsh.* ]] && continue
-    [[ "$head" =~ ^#compdef.* ]] && continue
-    check "$script"
+  head=$(head -n1 "$script")
+  [[ "$head" =~ .*ruby.* ]] && continue
+  [[ "$head" =~ .*zsh.* ]] && continue
+  [[ "$head" =~ ^#compdef.* ]] && continue
+  check "$script"
+done
+}
+
+check_commited_files() {
+  echo "Checking *sh scripts in current commit"
+  files_in_commit=($(git diff --cached --name-status --diff-filter=ACM | awk '{print $2}') )
+  for file in "${files_in_commit[@]}"; do
+    [ -f "$file" ] && [ -x "$file" ] && 
+    head -n 1 "$file" | grep -q "sh" 
+    [ $? -eq 0 ] && 
+    check "$file" || echo "$file is not *.sh script - commited" 
   done
 }
 
-check_all_executables
+while getopts ":ac" OPT
+do
+  case $OPT in
+    a ) check_all_executables ;;
+    c ) check_commited_files ;;
+    \? ) "Unrecognized operator -$OPTARG" >&2
+      exit 1
+      ;;
+  esac
+done
