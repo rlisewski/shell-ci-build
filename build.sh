@@ -53,10 +53,11 @@ check_commited_files() {
   done
 }
 
-while getopts ":ac" OPT
+[[ ! $1 ]] && check_all_executables && exit 0
+
+while getopts ":c" OPT
 do
   case $OPT in
-    a ) check_all_executables ;;
     c ) check_commited_files ;;
     \? ) "Unrecognized operator -$OPTARG" >&2
       exit 1
