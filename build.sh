@@ -46,7 +46,7 @@ check_commited_files() {
   echo "Checking *sh scripts in current commit"
   files_in_commit=($(git diff --cached --name-status --diff-filter=ACM | awk '{print $2}') )
   for file in "${files_in_commit[@]}"; do
-    [ -f "$file" ] && [ -x "$file" ] && 
+    [ -f "$file" ] &&  
     head -n 1 "$file" | grep -q "sh" 
     [ $? -eq 0 ] && 
     check "$file" || echo "$file is not *.sh script - commited" 
